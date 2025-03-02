@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ панель | М&М</title>
+    <link rel="stylesheet" href="https://unpkg.com/papercss@1.9.2/dist/paper.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .news-form {
+            background: white;
+            border: 2px solid #41403e;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .image-preview {
+            max-width: 300px;
+            margin-top: 1rem;
+            border: 2px solid #41403e;
+            display: none;
+        }
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+        .news-list {
+            margin-top: 2rem;
+        }
+        .news-item {
+            border: 2px solid #41403e;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            position: relative;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        .news-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 2px 8px 8px rgba(0,0,0,0.1);
+        }
+        .news-item img {
+            max-width: 200px;
+            margin-bottom: 1rem;
+            border: 2px solid #41403e;
+        }
+        .delete-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 30px;
+            height: 30px;
+            background: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .delete-btn:hover {
+            transform: rotate(90deg);
+            background: #cc0000;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 4px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+        .modal-content p {
+            margin: 1rem 0;
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .btn-delete {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-delete:hover {
+            background: #cc0000;
+        }
+        .btn-cancel {
+            background: #666;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-cancel:hover {
+            background: #444;
+        }
+        /* Стили для формы авторизации */
+        .auth-form {
+            max-width: 400px;
+            margin: 4rem auto;
+            padding: 2rem;
+            background: white;
+            border: 2px solid #41403e;
+            text-align: center;
+            animation: slideDown 0.5s ease;
+        }
+        .auth-form h2 {
+            margin-bottom: 2rem;
+        }
+        .auth-form .form-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+        .auth-form input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 2px solid #41403e;
+        }
+        .auth-form button {
+            width: 100%;
+            margin-top: 1rem;
+        }
+        .auth-error {
+            color: #ff4444;
+            margin-top: 1rem;
+            animation: shake 0.5s ease;
+        }
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        /* Скрываем контент админки до авторизации */
+        .admin-content {
+            display: none;
+        }
+        .admin-content.visible {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Форма авторизации -->
+    <div class="auth-form" id="authForm">
+        <h2><i class="fas fa-lock"></i> Вход в админ панель</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username"><i class="fas fa-user"></i> Логин</label>
+                <input type="text" id="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password"><i class="fas fa-key"></i> Пароль</label>
+                <input type="password" id="password" required>
+            </div>
+            <button type="submit" class="btn-secondary">
+                <i class="fas fa-sign-in-alt"></i> Войти
+            </button>
+        </form>
+    </div>
+
+    <!-- Контент админки -->
+    <div class="admin-content" id="adminContent">
+        <div class="container">
+            <h1><i class="fas fa-lock"></i> Админ панель</h1>
+            <div class="news-form">
+                <h3>Добавить новость</h3>
+                <form id="newsForm">
+                    <div class="form-group">
+                        <label for="newsTitle">Заголовок</label>
+                        <input type="text" id="newsTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newsContent">Содержание</label>
+                        <textarea id="newsContent" rows="5" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <div class="file-input-wrapper">
+                            <button class="btn-secondary" type="button">
+                                <i class="fas fa-image"></i> Выбрать изображение
+                            </button>
+                            <input type="file" id="newsImage" accept="image/*">
+                        </div>
+                        <img id="imagePreview" class="image-preview">
+                    </div>
+                    <button type="submit" class="btn-secondary">
+                        <i class="fas fa-plus"></i> Добавить новость
+                    </button>
+                </form>
+            </div>
+
+            <div class="news-list">
+                <h3>Управление новостями</h3>
+                <div id="newsList"></div>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Загрузка...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Проверка авторизации при загрузке страницы
+        function checkAuth() {
+            const isAuth = sessionStorage.getItem('isAuth');
+            if (isAuth === 'true') {
+                showAdminPanel();
+            }
+        }
+
+        // Показать админ панель
+        function showAdminPanel() {
+            document.getElementById('authForm').style.display = 'none';
+            const adminContent = document.getElementById('adminContent');
+            adminContent.classList.add('visible');
+        }
+
+        // Обработка формы авторизации
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (username === 'admin' && password === '12312') {
+                sessionStorage.setItem('isAuth', 'true');
+                showAdminPanel();
+            } else {
+                const error = document.createElement('div');
+                error.className = 'auth-error';
+                error.innerHTML = '<i class="fas fa-exclamation-circle"></i> Неверный логин или пароль';
+                
+                // Удаляем предыдущее сообщение об ошибке, если оно есть
+                const oldError = document.querySelector('.auth-error');
+                if (oldError) oldError.remove();
+                
+                this.appendChild(error);
+                this.classList.add('shake-error');
+                setTimeout(() => this.classList.remove('shake-error'), 500);
+            }
+        });
+
+        // Проверяем авторизацию при загрузке страницы
+        document.addEventListener('DOMContentLoaded', checkAuth);
+
+        // Инициализация Supabase
+        const supabaseUrl = 'https://jzybbcawznajbhotyjjt.supabase.co'
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6eWJiY2F3em5hamJob3R5amp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA5MjY4MTcsImV4cCI6MjA1NjUwMjgxN30.odR7hKHiICZaeOKtd2FgS76IYlOy5NyVEBLSwkZ5HM0'
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey)
+
+        // Функции для работы с загрузкой
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        // Форматирование даты
+        function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString('ru-RU', options);
+        }
+
+        // Загрузка списка новостей
+        async function loadNewsList() {
+            try {
+                const { data: news, error } = await supabaseClient
+                    .from('news')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                const newsListElement = document.getElementById('newsList');
+                newsListElement.innerHTML = '';
+
+                news.forEach(item => {
+                    const newsElement = document.createElement('div');
+                    newsElement.className = 'news-item';
+                    newsElement.innerHTML = `
+                        <button class="delete-btn" data-id="${item.id}">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        ${item.image_url ? `<img src="${item.image_url}" alt="${item.title}">` : ''}
+                        <h4>${item.title}</h4>
+                        <p><small>${formatDate(item.created_at)}</small></p>
+                        <p>${item.content.substring(0, 100)}...</p>
+                    `;
+
+                    newsListElement.appendChild(newsElement);
+                });
+
+                // Добавляем обработчики для кнопок удаления
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        showDeleteConfirmation(this.getAttribute('data-id'));
+                    });
+                });
+
+            } catch (error) {
+                console.error('Ошибка при загрузке новостей:', error);
+                alert('Ошибка при загрузке новостей');
+            }
+        }
+
+        // Функция показа подтверждения удаления
+        function showDeleteConfirmation(newsId) {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <h3><i class="fas fa-exclamation-triangle" style="color: #ff4444;"></i> Подтверждение удаления</h3>
+                    <p>Вы уверены, что хотите удалить эту новость?</p>
+                    <div class="modal-buttons">
+                        <button class="btn-delete" data-id="${newsId}">
+                            <i class="fas fa-trash"></i> Удалить
+                        </button>
+                        <button class="btn-cancel">
+                            <i class="fas fa-times"></i> Отмена
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+
+            // Обработчики для кнопок
+            modal.querySelector('.btn-delete').addEventListener('click', async function() {
+                const newsId = this.getAttribute('data-id');
+                await deleteNews(newsId);
+                modal.remove();
+            });
+
+            modal.querySelector('.btn-cancel').addEventListener('click', () => {
+                modal.remove();
+            });
+        }
+
+        // Удаление новости
+        async function deleteNews(id) {
+            showLoading();
+            try {
+                console.log('Начинаем удаление новости с ID:', id);
+
+                // Получаем информацию о новости
+                const { data: news, error: fetchError } = await supabaseClient
+                    .from('news')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+
+                if (fetchError) {
+                    console.error('Ошибка при получении информации о новости:', fetchError);
+                    throw fetchError;
+                }
+
+                console.log('Получена информация о новости:', news);
+
+                // Если есть изображение, удаляем его
+                if (news.image_url) {
+                    const fileName = news.image_url.split('/').pop();
+                    console.log('Удаляем изображение:', fileName);
+
+                    const { error: storageError } = await supabaseClient
+                        .storage
+                        .from('news-images')
+                        .remove([fileName]);
+
+                    if (storageError) {
+                        console.error('Ошибка при удалении изображения:', storageError);
+                        throw storageError;
+                    }
+                }
+
+                // Удаляем новость
+                console.log('Удаляем новость из базы данных...');
+                const { error: deleteError } = await supabaseClient
+                    .from('news')
+                    .delete()
+                    .eq('id', id);
+
+                if (deleteError) {
+                    console.error('Ошибка при удалении новости:', deleteError);
+                    throw deleteError;
+                }
+
+                console.log('Новость успешно удалена');
+                await loadNewsList();
+                alert('Новость успешно удалена');
+
+            } catch (error) {
+                console.error('Ошибка при удалении:', error);
+                alert(`Ошибка при удалении новости: ${error.message}`);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Обработка формы добавления новости
+        document.getElementById('newsForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            showLoading();
+
+            try {
+                const title = document.getElementById('newsTitle').value;
+                const content = document.getElementById('newsContent').value;
+                const imageFile = document.getElementById('newsImage').files[0];
+                
+                let image_url = null;
+                
+                if (imageFile) {
+                    console.log('Загружаем изображение...');
+                    const fileName = `${Date.now()}_${imageFile.name}`;
+                    const { data: uploadData, error: uploadError } = await supabaseClient
+                        .storage
+                        .from('news-images')
+                        .upload(fileName, imageFile);
+
+                    if (uploadError) {
+                        console.error('Ошибка при загрузке изображения:', uploadError);
+                        throw uploadError;
+                    }
+
+                    console.log('Изображение успешно загружено');
+                    const { data: { publicUrl } } = supabaseClient
+                        .storage
+                        .from('news-images')
+                        .getPublicUrl(fileName);
+
+                    image_url = publicUrl;
+                }
+
+                console.log('Добавляем новость в базу данных...');
+                const { data, error } = await supabaseClient
+                    .from('news')
+                    .insert([{
+                        title,
+                        content,
+                        image_url,
+                        created_at: new Date().toISOString()
+                    }]);
+
+                if (error) {
+                    console.error('Ошибка при добавлении новости:', error);
+                    throw error;
+                }
+
+                console.log('Новость успешно добавлена');
+                this.reset();
+                document.getElementById('imagePreview').style.display = 'none';
+                await loadNewsList();
+                alert('Новость успешно добавлена!');
+
+            } catch (error) {
+                console.error('Ошибка:', error);
+                alert(`Произошла ошибка: ${error.message}`);
+            } finally {
+                hideLoading();
+            }
+        });
+
+        // Предпросмотр изображения
+        document.getElementById('newsImage').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('imagePreview');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Загружаем список новостей при загрузке страницы
+        document.addEventListener('DOMContentLoaded', loadNewsList);
+    </script>
+</body>
+</html> 

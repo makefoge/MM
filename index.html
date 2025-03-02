@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мейрам & Мирас | Творческий Дуэт</title>
+    <link rel="stylesheet" href="https://unpkg.com/papercss@1.9.2/dist/paper.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        .hero {
+            padding: 4rem 2rem;
+            text-align: center;
+            background-color: #f0f0f0;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.03) 10px, rgba(0,0,0,0.03) 20px);
+            animation: backgroundMove 30s linear infinite;
+            z-index: 1;
+        }
+        .hero > * {
+            position: relative;
+            z-index: 2;
+        }
+        @keyframes backgroundMove {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .team-member {
+            margin-bottom: 2.5rem;
+            padding: 2.5rem;
+            border: 2px solid #41403e;
+            position: relative;
+            overflow: hidden;
+            background: #fff;
+            border-radius: 8px;
+        }
+        .team-member img {
+            max-width: 300px;
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border: 2px solid #41403e;
+            margin-bottom: 1.5rem;
+            transition: transform 0.5s ease;
+            border-radius: 8px;
+        }
+        .team-member:hover img {
+            transform: scale(1.05);
+        }
+        .team-member h4 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        .team-member p {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+        .skills-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        .skills {
+            font-size: 1.1rem;
+            padding: 0.5rem 1rem;
+            background: #fff;
+            border: 2px solid #41403e;
+            border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
+        }
+        .social-icons {
+            margin-top: 2rem;
+        }
+        .social-icons a {
+            margin: 0 15px;
+            font-size: 1.8rem;
+        }
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        .animated {
+            transition: all 0.3s ease;
+        }
+        .team-member:hover {
+            transform: translateY(-5px);
+            box-shadow: 2px 8px 8px rgba(0,0,0,0.2);
+        }
+        .icon-feature {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #41403e;
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .btn-secondary {
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            transform: scale(1.05);
+        }
+        /* Добавляем стили для загрузки */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .loader {
+            width: 80px;
+            height: 80px;
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #41403e;
+            border-radius: 50%;
+            animation: spin 1s linear infinite, scale 2s ease-in-out infinite;
+        }
+
+        .page-transition {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .page-transition.visible {
+            opacity: 1;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes scale {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.2) rotate(180deg); }
+        }
+
+        /* Анимация успешной отправки */
+        .success-message {
+            display: none;
+            color: #28a745;
+            margin-top: 1rem;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Анимация для ссылок */
+        .nav-link {
+            position: relative;
+            text-decoration: none;
+            color: #41403e;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            bottom: -2px;
+            left: 0;
+            background-color: #41403e;
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.3s ease;
+        }
+
+        .nav-link:hover::after {
+            transform: scaleX(1);
+            transform-origin: left;
+        }
+
+        /* Новые анимации */
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s ease-out;
+        }
+
+        .animate-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .bounce-hover:hover {
+            animation: bounce 0.5s;
+        }
+
+        .rotate-hover:hover {
+            animation: rotate360 0.5s;
+        }
+
+        @keyframes rotate360 {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .shake-error {
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        /* Улучшенный лоадер */
+        .loader {
+            width: 80px;
+            height: 80px;
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #41403e;
+            border-radius: 50%;
+            animation: spin 1s linear infinite, scale 2s ease-in-out infinite;
+        }
+
+        @keyframes scale {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.2) rotate(180deg); }
+        }
+
+        /* Анимация для карточек команды */
+        .team-member {
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .team-member:hover {
+            transform: translateY(-10px) rotate(2deg);
+        }
+
+        .skills {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .skills::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .skills:hover::before {
+            left: 100%;
+        }
+
+        /* Анимация для формы */
+        .form-group input:focus,
+        .form-group textarea:focus {
+            transform: scale(1.02);
+            transition: all 0.3s ease;
+        }
+
+        .success-animation {
+            animation: successPop 0.5s ease-out;
+        }
+
+        @keyframes successPop {
+            0% { transform: scale(0); }
+            70% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        /* Стили для активной навигации */
+        .nav-indicator {
+            position: absolute;
+            bottom: -2px;
+            height: 3px;
+            background-color: #41403e;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .nav-links {
+            position: relative;
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-link {
+            color: #41403e;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link.active {
+            color: #000;
+        }
+
+        /* Анимация прокрутки */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        .scroll-animation {
+            position: fixed;
+            width: 40px;
+            height: 40px;
+            background: #41403e;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .scroll-animation.active {
+            opacity: 1;
+            animation: moveScroll 0.8s ease-in-out;
+        }
+
+        @keyframes moveScroll {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        /* Стили для новостей */
+        .news-section {
+            padding: 4rem 0;
+            background: #f9f9f9;
+        }
+
+        .news-grid {
+            display: grid;
+            gap: 2rem;
+            margin-top: 2rem;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 0 1rem;
+        }
+
+        /* Адаптивная сетка в зависимости от количества новостей */
+        .news-grid[data-items="1"] {
+            grid-template-columns: 1fr;
+            max-width: 800px;
+        }
+
+        .news-grid[data-items="2"] {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .news-grid[data-items="3"] {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .news-card {
+            background: white;
+            border: 2px solid #41403e;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            opacity: 0;
+            transform: translateY(20px);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            border-radius: 4px;
+        }
+
+        .news-grid[data-items="1"] .news-card {
+            padding: 2.5rem;
+        }
+
+        .news-grid[data-items="1"] .news-image {
+            height: 600px;
+        }
+
+        .news-grid[data-items="2"] .news-image {
+            height: 500px;
+        }
+
+        .news-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .news-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 2px 8px 15px rgba(0,0,0,0.1);
+            border-color: #41403e;
+        }
+
+        .news-image {
+            width: 100%;
+            height: 450px;
+            object-fit: cover;
+            border: 2px solid #41403e;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .news-card:hover .news-image {
+            transform: scale(1.02);
+        }
+
+        .news-date {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0.8rem;
+        }
+
+        .news-title {
+            font-size: 1.8rem;
+            margin-bottom: 1.2rem;
+            line-height: 1.3;
+            color: #41403e;
+            transition: color 0.3s ease;
+        }
+
+        .news-grid[data-items="1"] .news-title {
+            font-size: 2.2rem;
+        }
+
+        .news-content {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            flex-grow: 1;
+            color: #555;
+        }
+
+        .news-btn {
+            display: inline-block;
+            background: #fff;
+            transition: all 0.3s ease;
+            border: 2px solid #41403e;
+            color: #41403e;
+            font-size: 1rem;
+            padding: 0.8rem 1.5rem;
+            cursor: pointer;
+            margin-top: auto;
+            border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
+            text-decoration: none;
+            box-shadow: 2px 2px 0 #41403e;
+            transform-origin: center;
+            font-weight: bold;
+        }
+
+        .news-btn:hover {
+            transform: translate(-4px, -4px);
+            box-shadow: 4px 4px 0 #41403e;
+            background: #fff;
+            color: #41403e;
+        }
+
+        .news-btn:active {
+            transform: translate(0, 0);
+            box-shadow: 2px 2px 0 #41403e;
+        }
+
+        /* Адаптивность для новостей */
+        @media (max-width: 992px) {
+            .news-grid[data-items="3"] {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .news-grid[data-items="1"] .news-image {
+                height: 500px;
+            }
+
+            .news-grid[data-items="2"] .news-image {
+                height: 450px;
+            }
+
+            .news-image {
+                height: 400px;
+            }
+
+            .news-card {
+                padding: 1.8rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .news-grid {
+                gap: 1.5rem;
+                padding: 0 0.5rem;
+            }
+
+            .news-grid[data-items="2"],
+            .news-grid[data-items="3"] {
+                grid-template-columns: 1fr;
+            }
+
+            .news-card {
+                padding: 1.2rem;
+            }
+
+            .news-image {
+                height: 300px;
+                margin-bottom: 1rem;
+            }
+
+            .news-grid[data-items="1"] .news-image {
+                height: 350px;
+            }
+
+            .news-grid[data-items="2"] .news-image {
+                height: 300px;
+            }
+
+            .news-title {
+                font-size: 1.4rem;
+                margin-bottom: 0.8rem;
+            }
+
+            .news-content {
+                font-size: 1rem;
+                line-height: 1.4;
+                margin-bottom: 1rem;
+            }
+
+            .news-btn {
+                padding: 0.6rem 1.2rem;
+                font-size: 0.9rem;
+            }
+
+            .news-date {
+                font-size: 0.8rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .container {
+                padding: 0 0.8rem;
+            }
+
+            .news-section {
+                padding: 2rem 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .news-grid[data-items="1"] .news-image {
+                height: 250px;
+            }
+
+            .news-grid[data-items="2"] .news-image,
+            .news-image {
+                height: 200px;
+            }
+
+            .news-card {
+                padding: 1rem;
+            }
+
+            .news-title {
+                font-size: 1.2rem;
+            }
+
+            .news-content {
+                font-size: 0.9rem;
+            }
+
+            .container {
+                padding: 0 0.5rem;
+            }
+        }
+
+        /* Стили для модального окна */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 8px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            border: 2px solid #41403e;
+        }
+
+        .modal.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal .close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #41403e;
+            transition: all 0.3s ease;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid #41403e;
+        }
+
+        .modal .close:hover {
+            transform: rotate(90deg);
+            color: #000;
+            border-color: #000;
+        }
+
+        .modal .news-image {
+            max-height: 400px;
+            width: 100%;
+            object-fit: cover;
+            margin-bottom: 2rem;
+            border-radius: 4px;
+        }
+
+        .modal .news-title {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #000;
+        }
+
+        .modal .news-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #333;
+        }
+
+        /* Адаптивность для навигации и команды */
+        @media (max-width: 768px) {
+            .nav-brand h3 {
+                font-size: 1.4rem;
+                margin: 0;
+            }
+
+            .collapsible-body {
+                padding: 1rem;
+                width: 100%;
+            }
+
+            .nav-links {
+                gap: 1rem;
+                flex-direction: column;
+                padding: 1rem;
+                width: 100%;
+            }
+
+            .nav-link {
+                display: block;
+                padding: 1.2rem;
+                text-align: left;
+                border-radius: 4px;
+                font-size: 1.2rem;
+                width: 100%;
+                background: #f8f8f8;
+                transition: all 0.3s ease;
+            }
+
+            .nav-link:hover {
+                background: #f0f0f0;
+                transform: translateX(10px);
+            }
+
+            .nav-link i {
+                margin-right: 1rem;
+                width: 20px;
+                text-align: center;
+            }
+
+            .collapsible input:checked ~ .collapsible-body {
+                max-height: none;
+                margin: 0;
+                padding: 1rem;
+            }
+
+            .row {
+                flex-direction: column;
+            }
+
+            .col-6 {
+                width: 100%;
+                margin-bottom: 1rem;
+            }
+
+            .team-member {
+                padding: 2rem;
+                margin-bottom: 2rem;
+            }
+
+            .team-member img {
+                max-width: 250px;
+                height: 250px;
+            }
+
+            .team-member h4 {
+                font-size: 1.8rem;
+            }
+
+            .team-member p {
+                font-size: 1.1rem;
+            }
+
+            .skills {
+                font-size: 1rem;
+                padding: 0.4rem 0.8rem;
+            }
+
+            .social-icons {
+                margin-top: 0.8rem;
+            }
+
+            .social-icons a {
+                font-size: 1.2rem;
+                margin: 0 8px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav-brand h3 {
+                font-size: 1.2rem;
+            }
+
+            .nav-link {
+                padding: 1rem;
+                font-size: 1.1rem;
+            }
+
+            .nav-links {
+                padding: 0.8rem;
+            }
+
+            .team-member {
+                padding: 1.5rem;
+            }
+
+            .team-member img {
+                max-width: 200px;
+                height: 200px;
+            }
+
+            .team-member h4 {
+                font-size: 1.5rem;
+            }
+
+            .team-member p {
+                font-size: 1rem;
+            }
+
+            .skills {
+                font-size: 0.9rem;
+                padding: 0.3rem 0.6rem;
+            }
+
+            .hero {
+                padding: 2rem 1rem;
+            }
+
+            .hero h1 {
+                font-size: 1.8rem;
+            }
+
+            .hero h3 {
+                font-size: 1.2rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Добавляем оверлей загрузки -->
+    <div class="loading-overlay">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Оборачиваем основной контент -->
+    <div class="page-transition visible">
+        <nav class="border fixed split-nav">
+            <div class="nav-brand">
+                <h3><a href="#" class="nav-link"><i class="fas fa-code"></i> М&М</a></h3>
+            </div>
+            <div class="collapsible">
+                <input id="collapsible1" type="checkbox" name="collapsible1">
+                <label for="collapsible1">
+                    <div class="bar1"></div>
+                    <div class="bar2"></div>
+                    <div class="bar3"></div>
+                </label>
+                <div class="collapsible-body">
+                    <ul class="inline nav-links">
+                        <li><a href="#about" class="nav-link" data-section="about"><i class="fas fa-info-circle"></i> О нас</a></li>
+                        <li><a href="#news" class="nav-link" data-section="news"><i class="fas fa-newspaper"></i> Новости</a></li>
+                        <li><a href="#team" class="nav-link" data-section="team"><i class="fas fa-users"></i> Команда</a></li>
+                        <li><a href="#contact" class="nav-link" data-section="contact"><i class="fas fa-envelope"></i> Контакты</a></li>
+                        <div class="nav-indicator"></div>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div class="scroll-animation">
+            <i class="fas fa-arrow-up"></i>
+        </div>
+
+        <div class="hero" id="about">
+            <h1><i class="fas fa-laptop-code icon-feature"></i></h1>
+            <h1>Мейрам & Мирас</h1>
+            <h3>Творческий Дуэт в Мире Технологий</h3>
+            <p>Создаем инновационные решения на стыке программирования и анимации</p>
+        </div>
+
+        <!-- Добавляем секцию новостей после hero секции -->
+        <div class="news-section" id="news">
+            <div class="container">
+                <h2 class="text-center"><i class="fas fa-newspaper icon-feature"></i></h2>
+                <h2 class="text-center">Последние Новости</h2>
+                <div class="news-grid" id="news-grid">
+                    <!-- Здесь будут отображаться новости -->
+                    <div class="loading-placeholder">
+                        <div class="loader"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container" id="team">
+            <div class="row">
+                <div class="col-6 col">
+                    <div class="team-member animated">
+                        <img src="https://th.bing.com/th/id/R.d72a122fe58ed185399902913ae76fb3?rik=3y1iFlCdDfUaxA&riu=http%3a%2f%2fvologdacomp.ru%2fwp-content%2fuploads%2f2017%2f12%2fuser2-160x160.png&ehk=ELLJVJmK5VoxYVNGflbhfadNaS7mJ7N0ZLe3AM%2bKka0%3d&risl=&pid=ImgRaw&r=0" alt="Мейрам">
+                        <h4><i class="fas fa-terminal"></i> Мейрам</h4>
+                        <p>Программист</p>
+                        <div class="skills-container">
+                            <span class="skills"><i class="fab fa-js"></i> JavaScript</span>
+                            <span class="skills"><i class="fab fa-python"></i> Python</span>
+                            <span class="skills"><i class="fab fa-react"></i> React</span>
+                            <span class="skills"><i class="fab fa-node-js"></i> Node.js</span>
+                        </div>
+                        <p class="margin-top-large">
+                            Опытный разработчик с страстью к созданию эффективных и элегантных решений.
+                        </p>
+                        <div class="social-icons">
+                            <a href="#"><i class="fab fa-github"></i></a>
+                            <a href="#"><i class="fab fa-linkedin"></i></a>
+                            <a href="#"><i class="fab fa-telegram"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col">
+                    <div class="team-member animated">
+                        <img src="https://th.bing.com/th/id/R.d72a122fe58ed185399902913ae76fb3?rik=3y1iFlCdDfUaxA&riu=http%3a%2f%2fvologdacomp.ru%2fwp-content%2fuploads%2f2017%2f12%2fuser2-160x160.png&ehk=ELLJVJmK5VoxYVNGflbhfadNaS7mJ7N0ZLe3AM%2bKka0%3d&risl=&pid=ImgRaw&r=0" alt="Мирас">
+                        <h4><i class="fas fa-paint-brush"></i> Мирас</h4>
+                        <p>Дизайнер анимации</p>
+                        <div class="skills-container">
+                            <span class="skills"><i class="fas fa-film"></i> After Effects</span>
+                            <span class="skills"><i class="fas fa-cube"></i> Blender</span>
+                            <span class="skills"><i class="fas fa-pencil-ruler"></i> UI/UX</span>
+                            <span class="skills"><i class="fas fa-video"></i> Motion Design</span>
+                        </div>
+                        <p class="margin-top-large">
+                            Креативный дизайнер, превращающий идеи в захватывающие визуальные истории.
+                        </p>
+                        <div class="social-icons">
+                            <a href="#"><i class="fab fa-behance"></i></a>
+                            <a href="#"><i class="fab fa-instagram"></i></a>
+                            <a href="#"><i class="fab fa-vimeo"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container margin-top-large" id="contact">
+            <div class="paper">
+                <h3><i class="fas fa-paper-plane icon-feature"></i></h3>
+                <h3>Свяжитесь с нами</h3>
+                <form>
+                    <div class="form-group">
+                        <label for="name"><i class="fas fa-user"></i> Имя</label>
+                        <input type="text" id="name" placeholder="Ваше имя">
+                    </div>
+                    <div class="form-group">
+                        <label for="email"><i class="fas fa-envelope"></i> Email</label>
+                        <input type="email" id="email" placeholder="your@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="message"><i class="fas fa-comment"></i> Сообщение</label>
+                        <textarea id="message" placeholder="Ваше сообщение"></textarea>
+                    </div>
+                    <button class="btn-secondary"><i class="fas fa-paper-plane"></i> Отправить</button>
+                </form>
+            </div>
+        </div>
+
+        <footer class="container margin-top-large padding-large">
+            <p>© 2024 Мейрам & Мирас. Все права защищены.</p>
+            <div class="social-icons">
+                <a href="#"><i class="fab fa-github"></i></a>
+                <a href="#"><i class="fab fa-behance"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-telegram"></i></a>
+            </div>
+        </footer>
+    </div>
+    <script>
+        // Инициализация Supabase
+        const supabaseUrl = 'https://jzybbcawznajbhotyjjt.supabase.co'
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6eWJiY2F3em5hamJob3R5amp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA5MjY4MTcsImV4cCI6MjA1NjUwMjgxN30.odR7hKHiICZaeOKtd2FgS76IYlOy5NyVEBLSwkZ5HM0'
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey)
+
+        // Анимация при скролле
+        function handleScrollAnimation() {
+            const elements = document.querySelectorAll('.animate-on-scroll');
+            elements.forEach(element => {
+                const position = element.getBoundingClientRect();
+                if(position.top < window.innerHeight - 100) {
+                    element.classList.add('visible');
+                }
+            });
+        }
+
+        window.addEventListener('scroll', handleScrollAnimation);
+
+        // Добавляем классы для анимации
+        document.querySelectorAll('.team-member').forEach(member => {
+            member.classList.add('animate-on-scroll');
+        });
+
+        document.querySelectorAll('.skills').forEach(skill => {
+            skill.classList.add('bounce-hover');
+        });
+
+        document.querySelectorAll('.icon-feature').forEach(icon => {
+            icon.classList.add('rotate-hover');
+        });
+
+        // Улучшенная валидация формы
+        function validateForm(formData) {
+            const errors = [];
+            if (!formData.name.trim()) errors.push('Имя обязательно');
+            if (!formData.email.trim()) errors.push('Email обязателен');
+            if (!formData.message.trim()) errors.push('Сообщение обязательно');
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+                errors.push('Неверный формат email');
+            }
+            return errors;
+        }
+
+        // Обработка отправки формы
+        document.querySelector('form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const form = this;
+
+            const formData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                message: document.getElementById('message').value,
+                created_at: new Date().toISOString()
+            };
+
+            // Валидация
+            const errors = validateForm(formData);
+            if (errors.length > 0) {
+                form.classList.add('shake-error');
+                setTimeout(() => form.classList.remove('shake-error'), 500);
+                alert(errors.join('\n'));
+                return;
+            }
+
+            showLoading();
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('contacts')
+                    .insert([formData]);
+
+                if (error) throw error;
+
+                // Анимированное сообщение об успехе
+                const successMessage = document.createElement('div');
+                successMessage.className = 'success-message success-animation';
+                successMessage.innerHTML = '<i class="fas fa-check-circle"></i> Сообщение успешно отправлено!';
+                form.appendChild(successMessage);
+                successMessage.style.display = 'block';
+
+                // Очищаем форму с анимацией
+                form.reset();
+                form.classList.add('success-animation');
+                setTimeout(() => form.classList.remove('success-animation'), 500);
+
+            } catch (error) {
+                console.error('Ошибка:', error);
+                form.classList.add('shake-error');
+                setTimeout(() => form.classList.remove('shake-error'), 500);
+                alert('Произошла ошибка при отправке сообщения: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        });
+
+        // Анимация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            hideLoading();
+            handleScrollAnimation();
+            
+            // Добавляем анимацию появления для всех элементов
+            document.querySelectorAll('.hero, .team-member, .paper').forEach(element => {
+                element.classList.add('animate__animated', 'animate__fadeIn');
+            });
+        });
+
+        // Улучшенные функции загрузки
+        function showLoading() {
+            const overlay = document.querySelector('.loading-overlay');
+            overlay.classList.add('active');
+            overlay.classList.add('animate__animated', 'animate__fadeIn');
+        }
+
+        function hideLoading() {
+            const overlay = document.querySelector('.loading-overlay');
+            overlay.classList.add('animate__fadeOut');
+            setTimeout(() => {
+                overlay.classList.remove('active', 'animate__fadeOut');
+            }, 500);
+        }
+
+        // Функция для обновления индикатора навигации
+        function updateNavIndicator() {
+            const sections = document.querySelectorAll('section[id], div[id]');
+            const navLinks = document.querySelectorAll('.nav-link[data-section]');
+            const indicator = document.querySelector('.nav-indicator');
+            
+            let currentSection = '';
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 100;
+                const sectionHeight = section.clientHeight;
+                if (window.scrollY >= sectionTop && window.scrollY < sectionTop + sectionHeight) {
+                    currentSection = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                const section = link.getAttribute('data-section');
+                if (section === currentSection) {
+                    const linkRect = link.getBoundingClientRect();
+                    indicator.style.width = `${linkRect.width}px`;
+                    indicator.style.left = `${linkRect.left}px`;
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        }
+
+        // Обработка прокрутки
+        window.addEventListener('scroll', () => {
+            updateNavIndicator();
+            handleScrollAnimation();
+        });
+
+        // Плавная прокрутка с анимацией
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                const startPosition = window.scrollY;
+                const targetPosition = targetElement.offsetTop;
+                
+                // Создаем анимацию стрелки
+                const scrollAnimation = document.querySelector('.scroll-animation');
+                const isScrollingDown = targetPosition > startPosition;
+                
+                scrollAnimation.innerHTML = isScrollingDown ? 
+                    '<i class="fas fa-arrow-down"></i>' : 
+                    '<i class="fas fa-arrow-up"></i>';
+                
+                // Позиционируем стрелку
+                scrollAnimation.style.top = `${isScrollingDown ? startPosition + 100 : targetPosition - 50}px`;
+                scrollAnimation.style.left = `${window.innerWidth / 2 - 20}px`;
+                scrollAnimation.classList.add('active');
+
+                // Плавная прокрутка
+                window.scrollTo({
+                    top: targetPosition,
+                    behavior: 'smooth'
+                });
+
+                // Убираем анимацию
+                setTimeout(() => {
+                    scrollAnimation.classList.remove('active');
+                }, 800);
+            });
+        });
+
+        // Инициализация индикатора при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            updateNavIndicator();
+            // ... existing DOMContentLoaded code ...
+        });
+
+        // Функция для форматирования даты
+        function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString('ru-RU', options);
+        }
+
+        // Функция для создания карточки новости
+        function createNewsCard(news) {
+            const card = document.createElement('div');
+            card.className = 'news-card';
+            
+            card.innerHTML = `
+                ${news.image_url ? `<img src="${news.image_url}" alt="${news.title}" class="news-image">` : ''}
+                <div class="news-date">${formatDate(news.created_at)}</div>
+                <h3 class="news-title">${news.title}</h3>
+                <p class="news-content">${news.content.substring(0, 150)}${news.content.length > 150 ? '...' : ''}</p>
+                <button class="btn-secondary news-btn">Читать далее</button>
+            `;
+
+            // Добавляем обработчик клика на кнопку
+            const btn = card.querySelector('.news-btn');
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Предотвращаем всплытие события
+                showNewsModal(news);
+            });
+
+            return card;
+        }
+
+        // Функция для загрузки новостей
+        async function loadNews() {
+            try {
+                const { data: news, error } = await supabaseClient
+                    .from('news')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(3);
+
+                if (error) throw error;
+
+                const newsGrid = document.getElementById('news-grid');
+                newsGrid.innerHTML = ''; // Очищаем placeholder
+                
+                // Устанавливаем атрибут для количества новостей
+                newsGrid.setAttribute('data-items', news.length);
+
+                news.forEach((newsItem, index) => {
+                    const card = createNewsCard(newsItem);
+                    card.style.animationDelay = `${index * 0.2}s`;
+                    newsGrid.appendChild(card);
+                    
+                    setTimeout(() => {
+                        card.classList.add('visible');
+                    }, index * 200);
+                });
+
+            } catch (error) {
+                console.error('Ошибка при загрузке новостей:', error);
+                const newsGrid = document.getElementById('news-grid');
+                newsGrid.innerHTML = '<p class="error-message">Ошибка при загрузке новостей</p>';
+            }
+        }
+
+        // Функция для показа модального окна с полной новостью
+        function showNewsModal(news) {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    ${news.image_url ? `<img src="${news.image_url}" alt="${news.title}" class="news-image">` : ''}
+                    <h2 class="news-title">${news.title}</h2>
+                    <div class="news-date">${formatDate(news.created_at)}</div>
+                    <div class="news-content">${news.content}</div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+            
+            // Добавляем класс active после добавления в DOM для анимации
+            setTimeout(() => modal.classList.add('active'), 10);
+
+            const closeModal = () => {
+                modal.classList.remove('active');
+                setTimeout(() => modal.remove(), 300);
+            };
+
+            modal.querySelector('.close').addEventListener('click', closeModal);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeModal();
+            });
+        }
+
+        // Загружаем новости при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            loadNews();
+            // ... existing DOMContentLoaded code ...
+        });
+    </script>
+</body>
+</html>
